@@ -1,77 +1,93 @@
-const Self = @This();
 const std = @import("std");
-const Chip8 = @import("Chip8.zig");
 const sdl = @import("sdl3");
+const Keypad = @import("Keypad.zig");
 
-joystick: ?*sdl.SDL_Joystick = null,
+const Self = @This();
 
-const EventResult = enum {
-    app_continue,
+pub const InputResult = union(enum) {
+    none,
     quit,
+    reset,
+    keypad: KeypadAction,
 };
 
-pub fn handleEvent(self: *Self, event: *sdl.SDL_Event) EventResult {
+pub const KeypadAction = struct {
+    key: Keypad.Key,
+    state: Keypad.KeyState,
+};
+
+pub fn handleEvent(self: *Self, event: *sdl.SDL_Event) InputResult {
     switch (event.type) {
-        sdl.SDL_EVENT_JOYSTICK_ADDED => {
-            if (self.joystick == null) {
-                self.joystick = sdl.SDL_OpenJoystick(event.jdevice.which);
-                if (self.joystick == null) {
-                    std.debug.print("Failed to open joystick ID {d}: {s}\n", .{
-                        event.jdevice.which,
-                        std.mem.span(sdl.SDL_GetError()),
-                    });
-                }
-            }
-        },
-        sdl.SDL_EVENT_JOYSTICK_REMOVED => {
-            if (self.joystick) |stick| {
-                if (sdl.SDL_GetJoystickID(stick) == event.jdevice.which) {
-                    sdl.SDL_CloseJoystick(self.joystick);
-                    self.joystick = null;
-                }
-            }
-        },
         sdl.SDL_EVENT_KEY_DOWN => {
-            return self.handleKeyEvent(event.key.scancode);
+            return self.handleKeyEvent(event.key.scancode, .down);
         },
-        sdl.SDL_EVENT_JOYSTICK_HAT_MOTION => {
-            return self.handleHatEvent(event.jhat.value);
+        sdl.SDL_EVENT_KEY_UP => {
+            return self.handleKeyEvent(event.key.scancode, .up);
         },
         else => {},
     }
-    return .app_continue;
+    return .none;
 }
 
-pub fn handleKeyEvent(self: *Self, key_code: sdl.SDL_Scancode) EventResult {
+pub fn handleKeyEvent(self: *Self, key_code: sdl.SDL_Scancode, state: Keypad.KeyState) InputResult {
     _ = self;
     switch (key_code) {
         // quit
-        sdl.SDL_SCANCODE_ESCAPE, sdl.SDL_SCANCODE_Q => {
+        sdl.SDL_SCANCODE_ESCAPE => {
             return .quit;
         },
-        // restart the game as if the program was launched
-        // sdl.SDL_SCANCODE_R => {
-        //     game.reset();
-        // },
-        // decide new direction of the snake
-        // sdl.SDL_SCANCODE_RIGHT => game.setDirection(.right),
-        // sdl.SDL_SCANCODE_UP => game.setDirection(.up),
-        // sdl.SDL_SCANCODE_LEFT => game.setDirection(.left),
-        // sdl.SDL_SCANCODE_DOWN => game.setDirection(.down),
+        sdl.SDL_SCANCODE_1 => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_1, .state = state } };
+        },
+        sdl.SDL_SCANCODE_2 => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_2, .state = state } };
+        },
+        sdl.SDL_SCANCODE_3 => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_3, .state = state } };
+        },
+        sdl.SDL_SCANCODE_4 => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_c, .state = state } };
+        },
+        sdl.SDL_SCANCODE_Q => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_4, .state = state } };
+        },
+        sdl.SDL_SCANCODE_W => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_5, .state = state } };
+        },
+        sdl.SDL_SCANCODE_E => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_6, .state = state } };
+        },
+        sdl.SDL_SCANCODE_R => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_d, .state = state } };
+        },
+        sdl.SDL_SCANCODE_A => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_7, .state = state } };
+        },
+        sdl.SDL_SCANCODE_S => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_8, .state = state } };
+        },
+        sdl.SDL_SCANCODE_D => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_9, .state = state } };
+        },
+        sdl.SDL_SCANCODE_F => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_e, .state = state } };
+        },
+        sdl.SDL_SCANCODE_Z => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_a, .state = state } };
+        },
+        sdl.SDL_SCANCODE_X => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_0, .state = state } };
+        },
+        sdl.SDL_SCANCODE_C => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_b, .state = state } };
+        },
+        sdl.SDL_SCANCODE_V => {
+            return .{ .keypad = .{ .key = Keypad.Key.key_f, .state = state } };
+        },
+        sdl.SDL_SCANCODE_BACKSPACE => {
+            return .reset;
+        },
         else => {},
     }
-    return .app_continue;
-}
-
-pub fn handleHatEvent(self: *Self, hat: u8) EventResult {
-    _ = self;
-    switch (hat) {
-        sdl.SDL_HAT_RIGHT => {},
-        sdl.SDL_HAT_UP => {},
-        sdl.SDL_HAT_LEFT => {},
-        sdl.SDL_HAT_DOWN => {},
-        else => {},
-    }
-
-    return .app_continue;
+    return .none;
 }

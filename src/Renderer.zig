@@ -63,7 +63,6 @@ fn toDevice(self: *Self, v: usize) usize {
 }
 
 pub fn paint(self: *Self, pixels: []const bool) !void {
-    std.debug.print("self.renderer = {any}\n", .{self.renderer});
     std.debug.assert(pixels.len == chip8_width * chip8_height);
     for (0..chip8_height) |y| {
         for (0..chip8_width) |x| {

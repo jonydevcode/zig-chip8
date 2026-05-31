@@ -36,6 +36,7 @@ zig build run
 
 - [zig](https://codeberg.org/ziglang/zig)
 - [allyourcodebase/SDL3](https://github.com/allyourcodebase/SDL3)
+- [Timendus/chip8-test-suit](https://github.com/Timendus/chip8-test-suite)
 - [Guide to making a CHIP-8 emulator](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
 
 ## License
