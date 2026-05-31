@@ -9,3 +9,4 @@ zig-pkg/
 *.ppm
 *.tmp
 .DS_Store
+*.ch8
