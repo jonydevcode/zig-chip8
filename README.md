@@ -9,6 +9,10 @@ A CHIP-8 emulator (actually interpreter) written in Zig. Uses SDL3 for display a
 
 The current contents of this repository were written without LLM/AI code generation. All AI usage in any form by contributors must be disclosed.
 
+## Screenshots
+
+![IBM logo](screenshots/01-ibmlogo.png)
+
 ## Getting Started
 
 ### Dependencies

@@ -7,7 +7,7 @@ const Renderer = @import("Renderer.zig");
 const Input = @import("Input.zig");
 
 const cpu_hz = 700;
-const pixel_size = 20;
+const pixel_size = 10;
 const window_width = 64 * pixel_size;
 const window_height = 32 * pixel_size;
 
