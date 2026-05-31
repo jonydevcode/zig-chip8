@@ -9,7 +9,7 @@ pub const SdlError = error{
 };
 
 /// Utility to help make good use of SDL_GetError()
-fn check(comptime name: []const u8, ok: bool) SdlError!void {
+pub fn check(comptime name: []const u8, ok: bool) SdlError!void {
     if (!ok) {
         std.log.err("{s} failed: {s}", .{ name, std.mem.span(sdl.SDL_GetError()) });
         return error.SdlFailure;
@@ -102,3 +102,25 @@ pub fn renderFillRect(
 pub fn renderPresent(renderer: *sdl.SDL_Renderer) SdlError!void {
     try check("SDL_RenderPresent", sdl.SDL_RenderPresent(renderer));
 }
+
+pub fn openAudioDeviceStream(
+    devid: u32,
+    spec: *const sdl.SDL_AudioSpec,
+    callback: ?*const fn (?*anyopaque, ?*sdl.SDL_AudioStream, c_int, c_int) callconv(.c) void,
+    userdata: ?*anyopaque,
+) SdlError!*sdl.SDL_AudioStream {
+    if (sdl.SDL_OpenAudioDeviceStream(
+        devid,
+        spec,
+        callback,
+        userdata,
+    )) |stream| {
+        return stream;
+    } else {
+        std.log.err("{s} failed: {s}", .{ "SDL_OpenAudioDeviceStream", std.mem.span(sdl.SDL_GetError()) });
+        return error.SdlFailure;
+    }
+    unreachable;
+}
+
+// sdl.SDL_OpenAudioDeviceStream(devid: u32, spec: [*c]const struct_SDL_AudioSpec, callback: ?*const fn (?*anyopaque, ?*struct_SDL_AudioStream, c_int, c_int) void, userdata: ?*anyopaque)

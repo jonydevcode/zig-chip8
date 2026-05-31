@@ -5,6 +5,7 @@ const sdl_adapter = @import("sdl_adapter.zig");
 const Input = @import("Input.zig");
 const Chip8 = @import("Chip8.zig");
 const Renderer = @import("Renderer.zig");
+const Audio8 = @import("Audio8.zig");
 
 const cpu_hz = 700;
 const timer_hz = 60;
@@ -57,6 +58,9 @@ pub fn main(init: std.process.Init) !void {
 
     // input
     var input = Input{};
+
+    // audio
+    var audio = try Audio8.init();
 
     const cpu_ns_per_cycle = 1_000_000_000 / cpu_hz;
     const timer_ns_per_cycle = 1_000_000_000 / timer_hz;
@@ -115,9 +119,16 @@ pub fn main(init: std.process.Init) !void {
             chip8.decrementTimers();
 
             // TODO: Beep if chip8.isSoundOn()
+            if (chip8.isSoundOn()) {
+                audio.playBeep();
+            } else {
+                try audio.stopBeep();
+            }
 
             timer_accumulator -= timer_ns_per_cycle;
         }
+
+        try audio.tick();
 
         // if (cpu_cycles_count > 39) break;
 

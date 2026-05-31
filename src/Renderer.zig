@@ -18,7 +18,7 @@ pixel_size: usize,
 pub fn init(comptime width: usize, comptime height: usize, comptime pixel_size: usize) !Self {
     try sdl_adapter.setAppMetadata("CHIP-8 Emulator", "0.1.0", "jonydevcode.chip8");
 
-    try sdl_adapter.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_JOYSTICK);
+    try sdl_adapter.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_AUDIO);
 
     std.debug.print(
         "video driver: {s}\n",
