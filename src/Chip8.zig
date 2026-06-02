@@ -29,7 +29,6 @@ display: [display_height * display_width]bool,
 rng: std.Random,
 keypad: Keypad,
 fx0a_getkey: GetKeyPressState,
-// last_unprocessed_keydown: ?Keypad.Key = null,
 
 // STATIC
 

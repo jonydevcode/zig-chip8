@@ -3,7 +3,7 @@
 ![No LLM Generation](https://img.shields.io/badge/LLM%20generation-none-brightgreen)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
-A CHIP-8 emulator (actually interpreter) written in Zig. Uses SDL3 for display and inputs.
+A CHIP-8 emulator (actually interpreter) written in Zig. Uses SDL3 GPU API for display and inputs.
 
 ![IBM logo](screenshots/01-ibmlogo.png)
 

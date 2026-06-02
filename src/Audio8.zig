@@ -3,8 +3,9 @@
 const Self = @This();
 const std = @import("std");
 const sdl = @import("sdl");
-const sdl_adapter = @import("sdl_adapter.zig");
+const sdlx = @import("sdlx.zig");
 const font = @import("font.zig");
+const SdlError = sdlx.SdlError;
 
 const audio_channels = 1; // DO NOT CHANGE THIS
 const audio_sample_rate = 48000;
@@ -24,13 +25,13 @@ pub fn init() !Self {
         .format = sdl.SDL_AUDIO_F32,
         .freq = audio_sample_rate,
     };
-    const stream = try sdl_adapter.openAudioDeviceStream(
+    const stream = sdl.SDL_OpenAudioDeviceStream(
         sdl.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
         &spec,
         null,
         null,
-    );
-    try sdl_adapter.check("SDL_ResumeAudioStreamDevice", sdl.SDL_ResumeAudioStreamDevice(stream));
+    ) orelse return SdlError.SdlFailure;
+    try sdlx.check("SDL_ResumeAudioStreamDevice", sdl.SDL_ResumeAudioStreamDevice(stream));
     return .{
         .stream = stream,
     };
@@ -68,7 +69,7 @@ pub fn tick(self: *Self) !void {
     var buf: [chunk_frames]f32 = undefined;
     self.generateSine(&buf);
 
-    try sdl_adapter.check("SDL_PutAudioStreamData", sdl.SDL_PutAudioStreamData(
+    try sdlx.check("SDL_PutAudioStreamData", sdl.SDL_PutAudioStreamData(
         self.stream,
         &buf,
         chunk_bytes,
@@ -81,5 +82,5 @@ pub fn playBeep(self: *Self) void {
 
 pub fn stopBeep(self: *Self) !void {
     self.is_playing = false;
-    try sdl_adapter.check("SDL_ClearAudioStream", sdl.SDL_ClearAudioStream(self.stream));
+    try sdlx.check("SDL_ClearAudioStream", sdl.SDL_ClearAudioStream(self.stream));
 }

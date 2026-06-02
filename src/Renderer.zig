@@ -1,6 +1,9 @@
+//! This file is kept around for legacy purposes. It is not used by main.zig.
+//! I have moved to using the SDL GPU API, which is faster and more extensible
+//! (e.g. custom CRT shaders possible).
 const Self = @This();
 const std = @import("std");
-const sdl_adapter = @import("sdl_adapter.zig");
+const sdlx = @import("sdlx.zig");
 const font = @import("font.zig");
 const sdl = @import("sdl");
 const SdlGpu = @import("SdlGpu.zig");
@@ -20,9 +23,9 @@ pub fn init(
     comptime frame_width: usize,
     comptime frame_height: usize,
 ) !Self {
-    try sdl_adapter.setAppMetadata("CHIP-8 Emulator", "0.1.0", "jonydevcode.chip8");
+    try sdlx.setAppMetadata("CHIP-8 Emulator", "0.1.0", "jonydevcode.chip8");
 
-    try sdl_adapter.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_AUDIO);
+    try sdlx.SDL_Init(sdl.SDL_INIT_VIDEO | sdl.SDL_INIT_AUDIO);
 
     std.debug.print(
         "video driver: {s}\n",
@@ -33,7 +36,7 @@ pub fn init(
     var window: *sdl.SDL_Window = undefined;
     var renderer: *sdl.SDL_Renderer = undefined;
     std.debug.print("Creating window of size WxH: {} x {}\n", .{ window_width, window_height });
-    const window_and_renderer = try sdl_adapter.createWindowAndRenderer(
+    const window_and_renderer = try sdlx.createWindowAndRenderer(
         "CHIP-8 Emulator (@jonydevcode)",
         window_width,
         window_height,
@@ -42,7 +45,7 @@ pub fn init(
     window = window_and_renderer.window;
     renderer = window_and_renderer.renderer;
 
-    try sdl_adapter.setRenderLogicalPresentation(
+    try sdlx.setRenderLogicalPresentation(
         renderer,
         window_width,
         window_height,
@@ -74,8 +77,8 @@ pub fn paint(self: *Self, pixels: []const bool) !void {
         for (0..self.frame_width) |x| {
             const pixel = pixels[y * self.frame_width + x];
             switch (pixel) {
-                true => try sdl_adapter.setRenderDrawColor(self.renderer, 255, 255, 255, sdl.SDL_ALPHA_OPAQUE),
-                false => try sdl_adapter.setRenderDrawColor(self.renderer, 0, 0, 0, sdl.SDL_ALPHA_OPAQUE),
+                true => try sdlx.setRenderDrawColor(self.renderer, 255, 255, 255, sdl.SDL_ALPHA_OPAQUE),
+                false => try sdlx.setRenderDrawColor(self.renderer, 0, 0, 0, sdl.SDL_ALPHA_OPAQUE),
             }
             var rect = sdl.SDL_FRect{
                 .x = @as(f32, @floatFromInt(self.toDevice(x))),
@@ -83,8 +86,8 @@ pub fn paint(self: *Self, pixels: []const bool) !void {
                 .w = @as(f32, @floatFromInt(self.pixel_size)),
                 .h = @as(f32, @floatFromInt(self.pixel_size)),
             };
-            try sdl_adapter.renderFillRect(self.renderer, &rect);
+            try sdlx.renderFillRect(self.renderer, &rect);
         }
     }
-    try sdl_adapter.renderPresent(self.renderer);
+    try sdlx.renderPresent(self.renderer);
 }

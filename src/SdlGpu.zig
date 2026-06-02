@@ -1,7 +1,7 @@
 const Self = @This();
 const std = @import("std");
 const sdl = @import("sdl");
-const sdlx = @import("sdl_adapter.zig");
+const sdlx = @import("sdlx.zig");
 
 pub const RGBA = packed struct(u32) { r: u8, g: u8, b: u8, a: u8 };
 

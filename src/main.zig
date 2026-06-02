@@ -1,7 +1,6 @@
 const std = @import("std");
 const sdl = @import("sdl");
 const rom = @import("rom.zig");
-const sdl_adapter = @import("sdl_adapter.zig");
 const Input = @import("Input.zig");
 const Chip8 = @import("Chip8.zig");
 const Renderer = @import("Renderer.zig");
@@ -77,14 +76,6 @@ pub fn main(init: std.process.Init) !void {
     chip8.copyROM(rom_bytes);
 
     // renderer
-    // var renderer = try Renderer.init(
-    //     window_width,
-    //     window_height,
-    //     pixel_size,
-    //     Chip8.display_width,
-    //     Chip8.display_height,
-    // );
-    // defer renderer.deinit();
     var frame_buf = [_]RGBA{Renderer3D.black} ** (Chip8.display_height * Chip8.display_width);
     var renderer = try Renderer3D.init(
         window_width,
@@ -166,13 +157,11 @@ pub fn main(init: std.process.Init) !void {
         // Decrement the delay and sound timers
         while (timer_accumulator >= timer_ns_per_cycle) {
             chip8.decrementTimers();
-
             if (chip8.isSoundOn()) {
                 audio.playBeep();
             } else {
                 try audio.stopBeep();
             }
-
             timer_accumulator -= timer_ns_per_cycle;
         }
 
