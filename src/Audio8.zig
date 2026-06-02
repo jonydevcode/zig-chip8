@@ -2,7 +2,7 @@
 //! seeing the autocomplete for sdl when it's named Audio.zig.
 const Self = @This();
 const std = @import("std");
-const sdl = @import("sdl3");
+const sdl = @import("sdl");
 const sdl_adapter = @import("sdl_adapter.zig");
 const font = @import("font.zig");
 

@@ -16,7 +16,7 @@ The current contents of this repository were written without LLM/AI code generat
 ### Dependencies
 
 - Zig 0.16
-- [allyourcodebase/SDL3](https://github.com/allyourcodebase/SDL3)
+- [castholm/SDL](https://github.com/castholm/SDL)
 
 ### Installing
 
@@ -33,9 +33,9 @@ zig build run -- rom_file.ch8
 ## Acknowledgments
 
 - [zig](https://codeberg.org/ziglang/zig)
-- [allyourcodebase/SDL3](https://github.com/allyourcodebase/SDL3)
-- [Timendus/chip8-test-suit](https://github.com/Timendus/chip8-test-suite)
+- [castholm/SDL](https://github.com/castholm/SDL)
 - [Guide to making a CHIP-8 emulator](https://tobiasvl.github.io/blog/write-a-chip-8-emulator/)
+- [Timendus/chip8-test-suit](https://github.com/Timendus/chip8-test-suite)
 
 ## License
 

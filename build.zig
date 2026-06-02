@@ -4,10 +4,17 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const sdl = b.dependency("sdl3", .{
+    const sdl_dependency = b.dependency("sdl", .{
         .optimize = optimize,
         .target = target,
     });
+    const sdl_lib = sdl_dependency.artifact("SDL3");
+    const sdl_translate_c = b.addTranslateC(.{
+        .root_source_file = b.path("src/sdl.h"),
+        .target = target,
+        .optimize = optimize,
+    });
+    sdl_translate_c.addIncludePath(sdl_dependency.path("include"));
 
     const exe = b.addExecutable(.{
         .name = "zig_chip8",
@@ -17,16 +24,10 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
-    exe.root_module.addImport("sdl3", sdl.module("sdl3"));
+    exe.root_module.addImport("sdl", sdl_translate_c.createModule());
+    exe.root_module.linkLibrary(sdl_lib);
 
     b.installArtifact(exe);
-
-    const exe_check = b.addExecutable(.{
-        .name = "zig_chip8",
-        .root_module = exe.root_module,
-    });
-    const check = b.step("check", "Check if the program compiles");
-    check.dependOn(&exe_check.step);
 
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
@@ -44,4 +45,7 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_exe_tests.step);
+
+    const check = b.step("check", "Check if the program compiles");
+    check.dependOn(&exe.step);
 }

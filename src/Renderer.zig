@@ -2,7 +2,7 @@ const Self = @This();
 const std = @import("std");
 const sdl_adapter = @import("sdl_adapter.zig");
 const font = @import("font.zig");
-const sdl = @import("sdl3");
+const sdl = @import("sdl");
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 

@@ -1,5 +1,5 @@
 const std = @import("std");
-const sdl = @import("sdl3");
+const sdl = @import("sdl");
 const rom = @import("rom.zig");
 const sdl_adapter = @import("sdl_adapter.zig");
 const Input = @import("Input.zig");
@@ -12,6 +12,26 @@ const timer_hz = 60;
 const pixel_size = 10;
 const window_width = 64 * pixel_size;
 const window_height = 32 * pixel_size;
+
+const PerformanceMetrics = struct {
+    cycles: usize = 0,
+    poll_ns: u64 = 0,
+    cpu_step_ns: u64 = 0,
+    renderer_ns: u64 = 0,
+    timers_ns: u64 = 0,
+    audio_tick_ns: u64 = 0,
+    start_ns: u64 = 0,
+
+    fn start(self: *PerformanceMetrics) void {
+        self.start_ns = sdl.SDL_GetTicksNS();
+    }
+
+    fn lap(self: *PerformanceMetrics) u64 {
+        const old_start = self.start_ns;
+        self.start_ns = sdl.SDL_GetTicksNS();
+        return self.start_ns - old_start;
+    }
+};
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
@@ -71,7 +91,11 @@ pub fn main(init: std.process.Init) !void {
     var done = false;
     var cpu_cycles_count: usize = 0;
 
+    var perf = PerformanceMetrics{};
+
     while (!done) {
+        perf.start();
+
         // Poll events
         var event: sdl.SDL_Event = undefined;
         while (sdl.SDL_PollEvent(&event)) {
@@ -82,7 +106,6 @@ pub fn main(init: std.process.Init) !void {
                         .reset => {},
                         .quit => done = true,
                         .keypad => |action| {
-                            // std.debug.print("Setting key {s}: {s}\n", .{ @tagName(action.key), @tagName(action.state) });
                             chip8.setKey(action.key, action.state);
                         },
                         .none => {},
@@ -92,6 +115,8 @@ pub fn main(init: std.process.Init) !void {
             }
         }
 
+        perf.poll_ns += perf.lap();
+
         const now_time = sdl.SDL_GetTicksNS();
         const tick_time = now_time - prev_time;
         prev_time = now_time;
@@ -100,17 +125,17 @@ pub fn main(init: std.process.Init) !void {
 
         // Step the CPU
         while (cpu_accumulator >= cpu_ns_per_cycle) {
-            switch (try chip8.step()) {
+            const step_result = try chip8.step();
+            perf.cpu_step_ns += perf.lap();
+            switch (step_result) {
                 .display_changed => {
                     // std.debug.print("Display changed.\n", .{});
                     try renderer.paint(&chip8.display);
+                    perf.renderer_ns += perf.lap();
                 },
                 .ok => {},
             }
             cpu_cycles_count += 1;
-            // if (cpu_cycles_count % 700 == 0) {
-            //     std.debug.print("Cpu running...\n", .{});
-            // }
             cpu_accumulator -= cpu_ns_per_cycle;
         }
 
@@ -118,7 +143,6 @@ pub fn main(init: std.process.Init) !void {
         while (timer_accumulator >= timer_ns_per_cycle) {
             chip8.decrementTimers();
 
-            // TODO: Beep if chip8.isSoundOn()
             if (chip8.isSoundOn()) {
                 audio.playBeep();
             } else {
@@ -128,11 +152,23 @@ pub fn main(init: std.process.Init) !void {
             timer_accumulator -= timer_ns_per_cycle;
         }
 
+        perf.timers_ns += perf.lap();
+
         try audio.tick();
 
-        // if (cpu_cycles_count > 39) break;
+        perf.audio_tick_ns += perf.lap();
+
+        perf.cycles += 1;
 
         const sleep_ns = cpu_ns_per_cycle -| cpu_accumulator;
         sdl.SDL_DelayNS(sleep_ns);
     }
+
+    // print performance metrics
+    std.debug.print("Per cycle performance metrics in ns\n", .{});
+    std.debug.print("PollEvent:  {d}\n", .{perf.poll_ns / perf.cycles});
+    std.debug.print("CPU step:   {d}\n", .{perf.cpu_step_ns / perf.cycles});
+    std.debug.print("Renderer:   {d}\n", .{perf.renderer_ns / perf.cycles});
+    std.debug.print("Timers:     {d}\n", .{perf.timers_ns / perf.cycles});
+    std.debug.print("Audio tick: {d}\n", .{perf.audio_tick_ns / perf.cycles});
 }

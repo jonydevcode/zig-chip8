@@ -1,5 +1,5 @@
 const std = @import("std");
-const sdl = @import("sdl3");
+const sdl = @import("sdl");
 const Keypad = @import("Keypad.zig");
 
 const Self = @This();

@@ -6,9 +6,9 @@
 
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
-        .sdl3 = .{
-            .url = "https://github.com/allyourcodebase/SDL3/archive/refs/heads/main.zip",
-            .hash = "sdl-1.0.1+3.4.4-i4QD0SaTqQAuzVwxZKJJ71iZT7OolLCvIJHVNvohJt41",
+        .sdl = .{
+            .url = "https://github.com/castholm/SDL/archive/refs/tags/v0.5.0+3.4.8.tar.gz",
+            .hash = "sdl-0.5.0+3.4.8-SDL--k4DpgH323IfF6cEaGzKUdtUQv1azbBmmcv0RMAu",
         },
     },
     .paths = .{

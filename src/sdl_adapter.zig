@@ -2,7 +2,7 @@
 //! The sole purpose of this layer is to normalise the error model,
 //! translating between SDL's return false + SDL_GetError() convention and Zig's !T model.
 const std = @import("std");
-const sdl = @import("sdl3");
+const sdl = @import("sdl");
 
 pub const SdlError = error{
     SdlFailure,
