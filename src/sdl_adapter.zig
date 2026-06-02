@@ -123,4 +123,16 @@ pub fn openAudioDeviceStream(
     unreachable;
 }
 
-// sdl.SDL_OpenAudioDeviceStream(devid: u32, spec: [*c]const struct_SDL_AudioSpec, callback: ?*const fn (?*anyopaque, ?*struct_SDL_AudioStream, c_int, c_int) void, userdata: ?*anyopaque)
+pub fn die(comptime name: []const u8) SdlError {
+    std.log.err("{s} failed: {s}", .{ name, std.mem.span(sdl.SDL_GetError()) });
+    return error.SdlFailure;
+}
+
+pub fn printVersionToDebug() void {
+    const version = sdl.SDL_GetVersion();
+    const major = sdl.SDL_VERSIONNUM_MAJOR(version);
+    const minor = sdl.SDL_VERSIONNUM_MINOR(version);
+    const micro = sdl.SDL_VERSIONNUM_MICRO(version);
+    std.debug.print("SDL version: {d}.{d}.{d}\n", .{ major, minor, micro });
+    std.debug.print("SDL revision: {s}\n", .{sdl.SDL_GetRevision()});
+}

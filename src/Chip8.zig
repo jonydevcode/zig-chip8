@@ -9,8 +9,9 @@ const ram_size = 4096;
 const reg_v_count = 16;
 const font_start = 0x50;
 const pc_start = 0x200;
-const display_width = 64;
-const display_height = 32;
+
+pub const display_width = 64;
+pub const display_height = 32;
 
 allocator: std.mem.Allocator,
 

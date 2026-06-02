@@ -5,13 +5,17 @@ const sdl_adapter = @import("sdl_adapter.zig");
 const Input = @import("Input.zig");
 const Chip8 = @import("Chip8.zig");
 const Renderer = @import("Renderer.zig");
+const Renderer3D = @import("Renderer3D.zig");
 const Audio8 = @import("Audio8.zig");
+const SdlGpu = @import("SdlGpu.zig");
+const RGBA = SdlGpu.RGBA;
 
 const cpu_hz = 700;
 const timer_hz = 60;
 const pixel_size = 10;
-const window_width = 64 * pixel_size;
-const window_height = 32 * pixel_size;
+const window_width = Chip8.display_width * pixel_size;
+const window_height = Chip8.display_height * pixel_size;
+const target_fps = 60;
 
 const PerformanceMetrics = struct {
     cycles: usize = 0,
@@ -73,7 +77,23 @@ pub fn main(init: std.process.Init) !void {
     chip8.copyROM(rom_bytes);
 
     // renderer
-    var renderer = try Renderer.init(window_width, window_height, pixel_size);
+    // var renderer = try Renderer.init(
+    //     window_width,
+    //     window_height,
+    //     pixel_size,
+    //     Chip8.display_width,
+    //     Chip8.display_height,
+    // );
+    // defer renderer.deinit();
+    var frame_buf = [_]RGBA{Renderer3D.black} ** (Chip8.display_height * Chip8.display_width);
+    var renderer = try Renderer3D.init(
+        window_width,
+        window_height,
+        pixel_size,
+        Chip8.display_width,
+        Chip8.display_height,
+        &frame_buf,
+    );
     defer renderer.deinit();
 
     // input
@@ -84,9 +104,12 @@ pub fn main(init: std.process.Init) !void {
 
     const cpu_ns_per_cycle = 1_000_000_000 / cpu_hz;
     const timer_ns_per_cycle = 1_000_000_000 / timer_hz;
+    const fps_ns_per_cycle = 1_000_000_000 / target_fps;
     var cpu_accumulator: u64 = 0;
     var timer_accumulator: u64 = 0;
+    var fps_accumulator: u64 = 0;
     var prev_time = sdl.SDL_GetTicksNS();
+    var display_changed = false;
 
     var done = false;
     var cpu_cycles_count: usize = 0;
@@ -122,6 +145,7 @@ pub fn main(init: std.process.Init) !void {
         prev_time = now_time;
         cpu_accumulator += tick_time;
         timer_accumulator += tick_time;
+        fps_accumulator += tick_time;
 
         // Step the CPU
         while (cpu_accumulator >= cpu_ns_per_cycle) {
@@ -129,9 +153,9 @@ pub fn main(init: std.process.Init) !void {
             perf.cpu_step_ns += perf.lap();
             switch (step_result) {
                 .display_changed => {
-                    // std.debug.print("Display changed.\n", .{});
-                    try renderer.paint(&chip8.display);
-                    perf.renderer_ns += perf.lap();
+                    display_changed = true;
+                    // try renderer.paint(&chip8.display);
+                    // perf.renderer_ns += perf.lap();
                 },
                 .ok => {},
             }
@@ -152,6 +176,18 @@ pub fn main(init: std.process.Init) !void {
             timer_accumulator -= timer_ns_per_cycle;
         }
 
+        // Present the screen at the target fps
+        while (fps_accumulator >= fps_ns_per_cycle) {
+            if (display_changed) {
+                try renderer.paint(&chip8.display);
+                display_changed = false;
+                perf.renderer_ns += perf.lap();
+            }
+
+            // at most one paint per cycle
+            fps_accumulator %= fps_ns_per_cycle;
+        }
+
         perf.timers_ns += perf.lap();
 
         try audio.tick();
@@ -166,6 +202,7 @@ pub fn main(init: std.process.Init) !void {
 
     // print performance metrics
     std.debug.print("Per cycle performance metrics in ns\n", .{});
+    std.debug.print("Cycles:     {d}\n", .{perf.cycles});
     std.debug.print("PollEvent:  {d}\n", .{perf.poll_ns / perf.cycles});
     std.debug.print("CPU step:   {d}\n", .{perf.cpu_step_ns / perf.cycles});
     std.debug.print("Renderer:   {d}\n", .{perf.renderer_ns / perf.cycles});
